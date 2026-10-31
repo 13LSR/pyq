@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { BookText } from "lucide-react";
+import { BookText, Tag } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useSiteSettings } from "@/lib/site-settings-store";
 import { toAbsoluteUrl } from "@/lib/upload";
@@ -17,6 +17,7 @@ interface ArticleListItem {
   excerpt?: string;
   category?: string;
   cover?: string;
+  tags?: string[];
   createdAt: string;
 }
 
@@ -35,18 +36,27 @@ export default function ArticleListSidebar() {
   const [loading, setLoading] = useState(true);
   const [hasDouban, setHasDouban] = useState(false);
   const [doubanLoaded, setDoubanLoaded] = useState(false);
+  const [activeTag, setActiveTag] = useState("");
   const sidebarScrollRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const currentId = pathname?.split("/").pop() || "";
   const defaultCover = useSiteSettings((s) => s.defaultCover);
 
   useEffect(() => {
-    fetch(`${API_URL}/posts?type=article&page=1&limit=20`)
+    fetch(`${API_URL}/posts?type=article&page=1&limit=50`)
       .then((res) => (res.ok ? res.json() : { data: [] }))
       .then((data) => setArticles(data.data || []))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  const availableTags = useMemo(
+    () => Array.from(new Set(articles.flatMap((article) => (Array.isArray(article.tags) ? article.tags : [])))),
+    [articles]
+  );
+  const filteredArticles = activeTag
+    ? articles.filter((article) => Array.isArray(article.tags) && article.tags.includes(activeTag))
+    : articles;
 
   useEffect(() => {
     if (typeof window === "undefined" || window.innerWidth < 1024) return;
@@ -100,8 +110,44 @@ export default function ArticleListSidebar() {
                 ))}
               </div>
             ) : (
-              <ul className="space-y-1">
-                {articles.map((article) => {
+              <>
+                {availableTags.length > 0 && (
+                  <div className="mb-3 flex flex-wrap gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setActiveTag("")}
+                      className={`rounded-full px-2 py-1 text-[11px] transition-colors ${
+                        !activeTag
+                          ? "bg-wechat-nickname text-white"
+                          : "bg-wechat-bubble text-wechat-time hover:bg-wechat-nickname/10 dark:bg-white/5"
+                      }`}
+                    >
+                      全部
+                    </button>
+                    {availableTags.map((tag) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => setActiveTag(tag)}
+                        className={`rounded-full px-2 py-1 text-[11px] transition-colors ${
+                          activeTag === tag
+                            ? "bg-wechat-nickname text-white"
+                            : "bg-wechat-bubble text-wechat-time hover:bg-wechat-nickname/10 dark:bg-white/5"
+                        }`}
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {filteredArticles.length === 0 ? (
+                  <div className="flex items-center gap-1.5 px-1 py-3 text-xs text-wechat-time/70">
+                    <Tag className="h-3.5 w-3.5" />
+                    没有匹配的文章
+                  </div>
+                ) : (
+                  <ul className="space-y-1">
+                    {filteredArticles.map((article) => {
                   const href = `/articles/${article.shortId || article.id}`;
                   const isActive = article.id === currentId || article.shortId === currentId;
                   return (
@@ -145,12 +191,26 @@ export default function ArticleListSidebar() {
                               </span>
                             )}
                           </div>
+                          {Array.isArray(article.tags) && article.tags.length > 0 && (
+                            <div className="mt-1 flex flex-wrap gap-1">
+                              {article.tags.slice(0, 3).map((tag) => (
+                                <span
+                                  key={tag}
+                                  className="rounded bg-wechat-nickname/10 px-1 py-0.5 text-[10px] text-wechat-nickname hover:bg-wechat-nickname/20"
+                                >
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </Link>
                     </li>
                   );
-                })}
-              </ul>
+                    })}
+                  </ul>
+                )}
+              </>
             )}
           </div>
         )}

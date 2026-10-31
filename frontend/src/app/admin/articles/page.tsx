@@ -16,6 +16,7 @@ interface ArticleListItem {
   excerpt: string;
   cover: string;
   category: string;
+  tags?: string[];
   content: string;
   articleType: "original" | "repost" | "ai";
   repostUrl: string;
@@ -195,6 +196,11 @@ export default function AdminArticlesPage() {
                             {article.category}
                           </span>
                         )}
+                        {Array.isArray(article.tags) && article.tags.map((tag) => (
+                          <span key={tag} className="rounded-full bg-blue-50 px-1.5 py-0.5 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400">
+                            #{tag}
+                          </span>
+                        ))}
                         <span>
                           {formatArticleTime(article.createdAt)}
                         </span>

@@ -4,31 +4,41 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --wechat-bg: #f5f5f5;
-  --wechat-bg-rgb: 245, 245, 245;
+  --ef-paper: #f4f4f2;
+  --ef-panel: #ffffff;
+  --ef-ink: #161616;
+  --ef-ink-2: #5c5c5c;
+  --ef-rule: #d9d9d6;
+  --ef-chip: #e4e4e0;
+  --ef-signal: #b8ff3d;
+  --ef-on-signal: #161616;
+  --ef-trace: var(--ef-ink);
+
+  --wechat-bg: var(--ef-paper);
+  --wechat-bg-rgb: 244, 244, 242;
   --wechat-white: #ffffff;
   --wechat-white-rgb: 255, 255, 255;
-  --wechat-text: #1a1a1a;
-  --wechat-nickname: #576b95;
-  --wechat-time: #b2b2b2;
-  --wechat-bubble: #f7f7f7;
-  --wechat-divider: #f5f5f5;
-  --wechat-link: #576b95;
-  --wechat-surface: #ededed;
-  --wechat-border: #e5e5e5;
-  --wechat-hover: #f0f0f0;
+  --wechat-text: var(--ef-ink);
+  --wechat-nickname: var(--ef-ink);
+  --wechat-time: var(--ef-ink-2);
+  --wechat-bubble: var(--ef-chip);
+  --wechat-divider: var(--ef-rule);
+  --wechat-link: var(--ef-ink);
+  --wechat-surface: var(--ef-panel);
+  --wechat-border: var(--ef-rule);
+  --wechat-hover: var(--ef-chip);
 
   /* Admin dashboard semantic colors */
-  --adm-bg: #f3f4f6;
-  --adm-card: #ffffff;
-  --adm-card-hover: #f9fafb;
-  --adm-text: #111827;
-  --adm-text-secondary: #6b7280;
-  --adm-text-tertiary: #9ca3af;
-  --adm-border: #e5e7eb;
-  --adm-input: #f9fafb;
-  --adm-input-focus: #ffffff;
-  --adm-primary: #374151;
+  --adm-bg: var(--ef-paper);
+  --adm-card: var(--ef-panel);
+  --adm-card-hover: var(--ef-chip);
+  --adm-text: var(--ef-ink);
+  --adm-text-secondary: var(--ef-ink-2);
+  --adm-text-tertiary: #777771;
+  --adm-border: var(--ef-rule);
+  --adm-input: var(--ef-paper);
+  --adm-input-focus: var(--ef-panel);
+  --adm-primary: var(--ef-ink);
   --adm-primary-text: #ffffff;
   --adm-danger: #ef4444;
   --adm-danger-bg: #fef2f2;
@@ -45,36 +55,43 @@
   }
 }
 
-/* Dark mode palette — WeChat-style dark theme */
+/* Endfield nightshift uses a separate dark palette, not an inverted light theme. */
 .dark {
-  --wechat-bg: #18181c;
-  --wechat-bg-rgb: 24, 24, 28;
-  --wechat-white: #232328;
-  --wechat-white-rgb: 35, 35, 40;
-  --wechat-text: #e0e0e0;
-  --wechat-nickname: #7d8fc4;
-  --wechat-time: #888888;
-  --wechat-bubble: #2a2a30;
-  --wechat-divider: #333338;
-  --wechat-link: #7d8fc4;
-  --wechat-surface: #2a2a30;
-  --wechat-border: #333338;
-  --wechat-hover: #333338;
+  --ef-paper: #191919;
+  --ef-panel: #222222;
+  --ef-ink: #ededed;
+  --ef-ink-2: #a3a3a3;
+  --ef-rule: #353535;
+  --ef-chip: #2e2e2e;
+  --ef-trace: var(--ef-signal);
 
-  /* Admin dashboard dark colors */
-  --adm-bg: #111827;
-  --adm-card: #1f2937;
-  --adm-card-hover: #374151;
-  --adm-text: #f9fafb;
-  --adm-text-secondary: #d1d5db;
-  --adm-text-tertiary: #9ca3af;
-  --adm-border: #374151;
-  --adm-input: #374151;
-  --adm-input-focus: #1f2937;
-  --adm-primary: #f3f4f6;
-  --adm-primary-text: #111827;
-  --adm-danger: #f87171;
-  --adm-danger-bg: rgba(239, 68, 68, 0.1);
+  --wechat-bg: var(--ef-paper);
+  --wechat-bg-rgb: 25, 25, 25;
+  --wechat-white: var(--ef-panel);
+  --wechat-white-rgb: 34, 34, 34;
+  --wechat-text: var(--ef-ink);
+  --wechat-nickname: var(--ef-signal);
+  --wechat-time: var(--ef-ink-2);
+  --wechat-bubble: var(--ef-chip);
+  --wechat-divider: var(--ef-rule);
+  --wechat-link: var(--ef-ink);
+  --wechat-surface: var(--ef-panel);
+  --wechat-border: var(--ef-rule);
+  --wechat-hover: var(--ef-chip);
+
+  --adm-bg: var(--ef-paper);
+  --adm-card: var(--ef-panel);
+  --adm-card-hover: var(--ef-chip);
+  --adm-text: var(--ef-ink);
+  --adm-text-secondary: var(--ef-ink-2);
+  --adm-text-tertiary: var(--ef-ink-2);
+  --adm-border: var(--ef-rule);
+  --adm-input: var(--ef-chip);
+  --adm-input-focus: var(--ef-panel);
+  --adm-primary: var(--ef-signal);
+  --adm-primary-text: var(--ef-on-signal);
+  --adm-danger: #ff8a7a;
+  --adm-danger-bg: rgba(255, 138, 122, 0.12);
 }
 
 @theme inline {
@@ -110,6 +127,11 @@
 
 html {
   scroll-behavior: smooth;
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
 }
 
 /* HarmonyOS Sans — 鸿蒙字体，字形比系统字体更细更现代（参考 kam.space） */
@@ -1855,4 +1877,83 @@ img.inline-emoji.emoji-error {
   font-size: 11px;
   color: var(--wechat-time, #999);
   line-height: 1.3;
+}
+
+/* Keep embedded article content on the same nightshift surfaces as the rest of the page. */
+.dark .macos-code-container,
+.dark .macos-enhanced-pre {
+  background: var(--ef-panel);
+  border-color: var(--ef-rule);
+}
+.dark .macos-code-container.is-selected {
+  border-color: var(--ef-signal);
+  box-shadow: 0 0 0 1px var(--ef-signal);
+}
+.dark .macos-code-header,
+.dark .macos-enhanced-header {
+  background: var(--ef-chip);
+  border-bottom-color: var(--ef-rule);
+}
+.dark .macos-code-content,
+.dark .macos-enhanced-code {
+  background: var(--ef-panel) !important;
+  color: var(--ef-ink) !important;
+}
+.dark .macos-line-numbers {
+  background: var(--ef-paper);
+  color: var(--ef-ink-2);
+}
+.dark .macos-lang-select,
+.dark .macos-enhanced-lang,
+.dark .macos-copy-btn {
+  color: var(--ef-ink-2);
+}
+.dark .macos-copy-btn:hover,
+.dark .macos-lang-select:hover {
+  background: var(--ef-rule);
+  color: var(--ef-ink);
+}
+.dark .article-content a.link-card,
+.dark .article-content .embed-block.embed-music {
+  background: var(--ef-chip);
+}
+.dark .article-content a.link-card:hover {
+  background: var(--ef-rule);
+}
+.dark .article-content .link-card-title,
+.dark .article-content .embed-block.embed-music .embed-title {
+  color: var(--ef-ink);
+}
+.dark .article-content .link-card-desc,
+.dark .article-content .embed-block.embed-music .embed-subtitle {
+  color: var(--ef-ink-2);
+}
+.dark .article-content .link-card-body,
+.dark .article-content .embed-block.embed-music .embed-info {
+  background: rgba(255, 255, 255, 0.03);
+}
+.dark .article-editor-area .selectedCell::after {
+  background: color-mix(in srgb, var(--ef-signal) 12%, transparent);
+}
+.dark .embed-node-wrapper.is-selected,
+.dark .ProseMirror .embed-node-wrapper.ProseMirror-selectednode,
+.dark .article-editor-area .embed-block:hover,
+.dark .article-editor-area a.link-card:hover {
+  outline-color: color-mix(in srgb, var(--ef-signal) 72%, transparent);
+}
+.dark .slash-command-list {
+  background: var(--ef-panel);
+  border-color: var(--ef-rule);
+}
+.dark .slash-command-item {
+  color: var(--ef-ink);
+}
+.dark .slash-command-item:hover,
+.dark .slash-command-item.is-selected {
+  background: var(--ef-chip);
+}
+
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--ef-trace);
+  outline-offset: 2px;
 }

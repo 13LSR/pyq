@@ -11,6 +11,8 @@ next-env.d.ts
 
 # Environment variables (keep .env.example)
 .env
+.mysql-data/
+.mysql-data-*/
 .env.*
 !.env.example
 

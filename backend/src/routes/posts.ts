@@ -11,6 +11,7 @@ import { checkCommentRate, recordCommentSuccess, resetViolations } from "../midd
 import { blacklistService } from "../services/blacklist-service";
 import { sendCommentNotification } from "../services/email-service";
 import { parseVideoFromUrl, ParseError } from "./video-parse";
+import { normalizePostTags, postTagWhere, readStoredPostTags } from "../utils/post-tags";
 
 const router = Router();
 
@@ -175,6 +176,7 @@ function formatPost(
       excerpt: getExcerpt(post),
       cover: post.cover || "",
       category: post.category || "",
+      tags: readStoredPostTags(post.tags),
       content: post.content,
       images: post.images,
       location: post.location || null,
@@ -235,6 +237,10 @@ router.get("/", authenticateOptional, async (req: AuthRequest, res: Response) =>
   const categoryParam = req.query.category as string;
   if (categoryParam) {
     where.category = categoryParam;
+  }
+  const tagParam = String(req.query.tag || "").trim();
+  if (tagParam) {
+    where[Op.and] = [postTagWhere(tagParam)];
   }
 
   const { count, rows: posts } = await Post.findAndCountAll({
@@ -442,6 +448,7 @@ router.post(
     body("excerpt").optional().trim().isLength({ max: 500 }),
     body("cover").optional().trim().isLength({ max: 512 }),
     body("category").optional().trim().isLength({ max: 50 }),
+    body("tags").optional().isArray(),
     body("articleType").optional().isIn(["original", "repost", "ai"]),
     body("repostUrl").optional().trim().isLength({ max: 500 }),
     body("content").optional().trim(),
@@ -471,6 +478,7 @@ router.post(
       excerpt = "",
       cover = "",
       category = "",
+      tags = [],
       articleType = "original",
       repostUrl = "",
       content = "",
@@ -489,6 +497,7 @@ router.post(
     } = req.body;
 
     const normalizedMusic = await validateR2MusicPayload(music, req.user!.id);
+    const normalizedTags = normalizePostTags(tags);
 
     // 广告不允许置顶，强制清零防止前端绕过
     const finalPinned = isAd ? false : pinned;
@@ -508,6 +517,7 @@ router.post(
           excerpt,
           cover,
           category,
+          tags: normalizedTags,
           articleType,
           repostUrl,
           content,
@@ -559,6 +569,7 @@ router.put(
     body("excerpt").optional({ nullable: true }).trim().isLength({ max: 500 }),
     body("cover").optional({ nullable: true }).trim().isLength({ max: 512 }),
     body("category").optional({ nullable: true }).trim().isLength({ max: 50 }),
+    body("tags").optional({ nullable: true }).isArray(),
     body("articleType").optional().isIn(["original", "repost", "ai"]),
     body("repostUrl").optional().trim().isLength({ max: 500 }),
     body("content").optional().trim(),
@@ -591,6 +602,9 @@ router.put(
     const normalizedMusic = req.body.music !== undefined
       ? await validateR2MusicPayload(req.body.music, req.user!.id)
       : post.music;
+    const normalizedTags = req.body.tags !== undefined
+      ? normalizePostTags(req.body.tags)
+      : readStoredPostTags(post.tags);
 
     const finalIsAd = req.body.isAd !== undefined ? req.body.isAd : post.isAd;
     const incomingPinned = req.body.pinned;
@@ -606,6 +620,7 @@ router.put(
       excerpt: req.body.excerpt !== undefined ? req.body.excerpt : post.excerpt,
       cover: req.body.cover !== undefined ? req.body.cover : post.cover,
       category: req.body.category !== undefined ? req.body.category : post.category,
+      tags: normalizedTags,
       articleType: req.body.articleType !== undefined ? req.body.articleType : post.articleType,
       repostUrl: req.body.repostUrl !== undefined ? req.body.repostUrl : post.repostUrl,
       content: req.body.content !== undefined ? req.body.content : post.content,

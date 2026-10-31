@@ -24,7 +24,7 @@ export default function ThemeToggleButton() {
         markManualOverride();
         setTheme(isDark ? "light" : "dark");
       }}
-      className="flex h-9 w-9 items-center justify-center rounded-lg text-adm-text-secondary transition-colors hover:bg-adm-card-hover hover:text-adm-text"
+      className="flex h-9 w-9 items-center justify-center rounded-lg text-adm-text-secondary transition-colors hover:bg-adm-card-hover hover:text-adm-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-adm-primary"
       aria-label={isDark ? "切换到白天模式" : "切换到夜间模式"}
       title={isDark ? "白天模式" : "夜间模式"}
     >

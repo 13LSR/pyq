@@ -8,7 +8,7 @@ import { getManualOverrideTime } from "@/lib/dark-mode-override";
 
 /**
  * 夜间模式自动调度器：后端开启时段调度时按时间切换，否则不干预主题
- * （由 next-themes 的 defaultTheme="light" 默认浅色）。
+ * （由 next-themes 的 defaultTheme="dark" 默认暗色）。
  *
  * 注意：next-themes 0.4.x 的 setTheme 依赖 theme state，引用会随主题变化而变化，
  * 因此用 useRef 稳定引用，避免 useEffect 因 setTheme 变化而重新执行，
@@ -60,14 +60,14 @@ function DarkModeScheduler() {
 
 /**
  * Safari 浏览器底部栏颜色同步：跟随网站主题动态更新 <meta name="theme-color">
- * 浅色模式 = 白色 (#ffffff)，夜间模式 = 深色页面背景 (#18181c)
+ * 浅色模式 = 白色 (#ffffff)，夜间模式 = nightshift 纸面背景 (#191919)
  */
 function ThemeColorSync() {
   const { theme } = useTheme();
   useEffect(() => {
     const meta = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement | null;
     if (!meta) return;
-    meta.content = theme === "dark" ? "#18181c" : "#ffffff";
+    meta.content = theme === "dark" ? "#191919" : "#ffffff";
   }, [theme]);
   return null;
 }
@@ -79,7 +79,7 @@ export default function ThemeProvider({
   return (
     <NextThemesProvider
       attribute="class"
-      defaultTheme="light"
+      defaultTheme="dark"
       disableTransitionOnChange
       {...props}
     >

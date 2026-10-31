@@ -66,6 +66,8 @@ interface PostAttributes {
   excerpt: string;
   cover: string;
   category: string;
+  /** 文章标签，用于前台筛选。 */
+  tags: string[];
   content: string;
   images: string[];
   location: PostLocation | null;
@@ -93,7 +95,7 @@ interface PostAttributes {
   status: "published" | "draft";
 }
 
-interface PostCreationAttributes extends Optional<PostAttributes, "id" | "shortId" | "type" | "title" | "excerpt" | "cover" | "category" | "pinned" | "isAd" | "adAvatar" | "adNickname" | "likesDisabled" | "commentsDisabled" | "ip" | "region" | "articleType" | "repostUrl" | "viewCount" | "status"> {}
+interface PostCreationAttributes extends Optional<PostAttributes, "id" | "shortId" | "type" | "title" | "excerpt" | "cover" | "category" | "tags" | "pinned" | "isAd" | "adAvatar" | "adNickname" | "likesDisabled" | "commentsDisabled" | "ip" | "region" | "articleType" | "repostUrl" | "viewCount" | "status"> {}
 
 class Post
   extends Model<PostAttributes, PostCreationAttributes>
@@ -107,6 +109,7 @@ class Post
   declare excerpt: string;
   declare cover: string;
   declare category: string;
+  declare tags: string[];
   declare content: string;
   declare images: string[];
   declare location: PostLocation | null;
@@ -177,6 +180,11 @@ Post.init(
       type: DataTypes.STRING(50),
       allowNull: false,
       defaultValue: "",
+    },
+    tags: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      defaultValue: [],
     },
     content: {
       type: DataTypes.TEXT,

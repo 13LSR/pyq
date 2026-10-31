@@ -36,12 +36,17 @@ export default function AdminLayoutClient({
 
   useEffect(() => {
     const token = localStorage.getItem("admin_token");
+    if (pathname === "/admin/login") {
+      if (token) router.replace("/admin");
+      setLoading(false);
+      return;
+    }
     if (!token) {
       router.replace("/");
     }
     setLoading(false);
     if (token) fetchSettings();
-  }, [router, fetchSettings]);
+  }, [pathname, router, fetchSettings]);
 
   // 侧栏收缩状态持久化
   useEffect(() => {
@@ -78,6 +83,10 @@ export default function AdminLayoutClient({
         </div>
       </div>
     );
+  }
+
+  if (pathname === "/admin/login") {
+    return <>{children}</>;
   }
 
   // 分组导航：仪表盘独立 + 内容管理组 + 设置组

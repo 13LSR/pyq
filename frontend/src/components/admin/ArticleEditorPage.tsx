@@ -25,6 +25,8 @@ export default function ArticleEditorPage({ articleId }: ArticleEditorPageProps)
   const [cover, setCover] = useState("");
   const [articleType, setArticleType] = useState<"original" | "repost" | "ai">("original");
   const [repostUrl, setRepostUrl] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState("");
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState<null | "published" | "draft">(null);
   const [uploadingCover, setUploadingCover] = useState(false);
@@ -36,7 +38,7 @@ export default function ArticleEditorPage({ articleId }: ArticleEditorPageProps)
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
   const coverInputRef = useRef<HTMLInputElement | null>(null);
   // 编辑模式：加载完成后记录初始快照，用于判断是否有未保存改动
-  const initialSnapshotRef = useRef<{ title: string; content: string; caption: string } | null>(null);
+  const initialSnapshotRef = useRef<{ title: string; content: string; caption: string; tags: string[] } | null>(null);
 
   useEffect(() => {
     if (!articleId) return;
@@ -65,6 +67,7 @@ export default function ArticleEditorPage({ articleId }: ArticleEditorPageProps)
         setCover(data.cover || "");
         setArticleType(data.articleType || "original");
         setRepostUrl(data.repostUrl || "");
+        setTags(Array.isArray(data.tags) ? data.tags : []);
         setRegion(data.region || "");
         setLikesDisabled(!!data.likesDisabled);
         setCommentsDisabled(!!data.commentsDisabled);
@@ -73,6 +76,7 @@ export default function ArticleEditorPage({ articleId }: ArticleEditorPageProps)
           title: data.title || "",
           content: mergedContent,
           caption: data.excerpt || "",
+          tags: Array.isArray(data.tags) ? data.tags : [],
         };
       } catch (err) {
         alert(err instanceof Error ? err.message : "加载文章失败");
@@ -82,6 +86,27 @@ export default function ArticleEditorPage({ articleId }: ArticleEditorPageProps)
       }
     })();
   }, [articleId, router]);
+
+  const addTags = useCallback((rawValue: string) => {
+    const incoming = rawValue
+      .split(/[，,\n]/)
+      .map((value) => value.trim())
+      .filter(Boolean);
+    if (incoming.length === 0) return;
+    setTags((current) => {
+      const next = [...current];
+      const keys = new Set(current.map((tag) => tag.toLocaleLowerCase()));
+      for (const tag of incoming) {
+        const key = tag.toLocaleLowerCase();
+        if (!keys.has(key)) {
+          keys.add(key);
+          next.push(tag);
+        }
+      }
+      return next.slice(0, 10);
+    });
+    setTagInput("");
+  }, []);
 
   const handleAutoLocate = useCallback(async () => {
     setLocating(true);
@@ -186,6 +211,7 @@ export default function ArticleEditorPage({ articleId }: ArticleEditorPageProps)
         excerpt: caption.trim(),
         cover,
         category: "",
+        tags,
         articleType,
         repostUrl: articleType === "repost" ? repostUrl.trim() : "",
         region: region || undefined,
@@ -230,19 +256,19 @@ export default function ArticleEditorPage({ articleId }: ArticleEditorPageProps)
     } finally {
       setSaving(null);
     }
-  }, [title, content, caption, cover, articleType, repostUrl, region, likesDisabled, commentsDisabled, pinned, isEdit, articleId, router]);
+  }, [title, content, caption, cover, tags, articleType, repostUrl, region, likesDisabled, commentsDisabled, pinned, isEdit, articleId, router]);
 
   // 判断是否有未保存改动
   // - 新建模式：标题或正文任一非空即视为有内容
   // - 编辑模式：与初始快照比较，任一不同即视为有改动
   const hasUnsavedContent = useCallback(() => {
     if (!isEdit) {
-      return title.trim().length > 0 || content.trim().length > 0 || caption.trim().length > 0;
+      return title.trim().length > 0 || content.trim().length > 0 || caption.trim().length > 0 || tags.length > 0;
     }
     const snap = initialSnapshotRef.current;
     if (!snap) return false;
-    return snap.title !== title || snap.content !== content || snap.caption !== caption;
-  }, [title, content, caption, isEdit]);
+    return snap.title !== title || snap.content !== content || snap.caption !== caption || JSON.stringify(snap.tags) !== JSON.stringify(tags);
+  }, [title, content, caption, tags, isEdit]);
 
   // 草稿提交状态记录：避免保存后触发 beforeunload 提示
   const savedDraftRef = useRef(false);
@@ -394,6 +420,57 @@ export default function ArticleEditorPage({ articleId }: ArticleEditorPageProps)
         {/* 封面 + 定位 + 互动 — 桌面端固定不滚动，内容多时内部滚动 */}
         <aside className="lg:w-80 lg:shrink-0 lg:overflow-y-auto lg:pl-1">
           <div className="space-y-4 lg:pb-2">
+            {/* 标签 */}
+            <div className="rounded-xl border border-adm-border bg-adm-card p-4">
+              <label className="mb-2 block text-xs font-medium text-adm-text-secondary">
+                文章标签
+              </label>
+              <div className="flex flex-wrap gap-1.5">
+                {tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="inline-flex items-center gap-1 rounded-full bg-adm-input px-2.5 py-1 text-xs text-adm-text"
+                  >
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => setTags((current) => current.filter((item) => item !== tag))}
+                      className="text-adm-text-tertiary transition-colors hover:text-adm-text"
+                      aria-label={`删除标签 ${tag}`}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+              {tags.length < 10 && (
+                <input
+                  type="text"
+                  value={tagInput}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    if (/[，,\n]/.test(value)) {
+                      addTags(value);
+                    } else {
+                      setTagInput(value);
+                    }
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      addTags(tagInput);
+                    }
+                  }}
+                  placeholder="输入标签后按回车"
+                  maxLength={40}
+                  className="mt-2 w-full rounded-lg border border-adm-border bg-adm-input px-3 py-2 text-xs text-adm-text placeholder:text-adm-text-tertiary focus:outline-none focus:ring-2 focus:ring-gray-400/30"
+                />
+              )}
+              <p className="mt-1.5 text-[11px] text-adm-text-tertiary">
+                最多 10 个标签，可用逗号分隔
+              </p>
+            </div>
+
             {/* 封面 */}
             <div className="rounded-xl border border-adm-border bg-adm-card p-4">
               <label className="mb-2 block text-xs font-medium text-adm-text-secondary">

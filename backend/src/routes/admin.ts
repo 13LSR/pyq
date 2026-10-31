@@ -1,11 +1,13 @@
 import { Router, Response } from "express";
 import bcrypt from "bcryptjs";
 import { body, param, validationResult } from "express-validator";
+import { Op } from "sequelize";
 import sequelize from "../config/database";
 import { User, Post, Comment, Like, SiteSetting } from "../models";
 import { authenticate, requireAdmin, AuthRequest } from "../middleware/auth";
 import { blacklistService } from "../services/blacklist-service";
 import { siteSettingTextDefaults } from "../models/SiteSetting";
+import { postTagWhere, readStoredPostTags } from "../utils/post-tags";
 
 const router = Router();
 
@@ -114,6 +116,10 @@ router.get("/posts", authenticate, requireAdmin, async (req: AuthRequest, res: R
   if (categoryParam) {
     where.category = categoryParam;
   }
+  const tagParam = String(req.query.tag || "").trim();
+  if (tagParam) {
+    where[Op.and] = [postTagWhere(tagParam)];
+  }
 
   const { count, rows: posts } = await Post.findAndCountAll({
     where,
@@ -133,6 +139,7 @@ router.get("/posts", authenticate, requireAdmin, async (req: AuthRequest, res: R
       excerpt: p.excerpt || "",
       cover: p.cover || "",
       category: p.category || "",
+      tags: readStoredPostTags(p.tags),
       content: (p.content || "").replace(/<[^>]+>/g, "").slice(0, 200),
       articleType: p.articleType || "original",
       repostUrl: p.repostUrl || "",

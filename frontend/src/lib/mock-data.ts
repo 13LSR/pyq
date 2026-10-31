@@ -99,6 +99,8 @@ export interface Post {
   cover?: string;
   /** 文章分类 */
   category?: string;
+  /** 文章标签 */
+  tags?: string[];
   /** 发帖省份（IP 解析简称，如"湖北"） */
   region?: string;
   /** 文章类型：original=原创，repost=转载，ai=AI生成 */

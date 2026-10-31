@@ -15,7 +15,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
-  themeColor: "#ffffff",
+  themeColor: "#191919",
 };
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -124,6 +124,13 @@ export default async function RootLayout({
     <html
       lang="zh-CN"
       className="h-full antialiased"
+      data-ef-variant="nightshift"
+      data-ef-accent="lime"
+      data-ef-paper="neutral"
+      data-ef-cut="standard"
+      data-ef-ground="plain"
+      data-ef-density="compact"
+      data-ef-motion="calm"
       data-scroll-behavior="smooth"
       style={customFontStyle}
       suppressHydrationWarning
