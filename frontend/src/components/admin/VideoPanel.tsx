@@ -5,6 +5,7 @@ import { Loader2, X, Video, Upload, Link2, Code2, Play } from "lucide-react";
 import type { PostVideo } from "@/lib/mock-data";
 import { toAbsoluteUrl, uploadVideo } from "@/lib/upload";
 import { PUBLIC_API_URL } from "@/lib/api-fetch";
+import { isPlatformShareUrl } from "@/lib/video-url";
 import AdminModal from "./AdminModal";
 
 const API_URL = PUBLIC_API_URL;
@@ -117,10 +118,17 @@ export default function VideoPanel({
     }
   };
 
-  const handleUseDirect = () => {
-    if (!directUrl.trim()) return;
+  const handleUseDirect = async () => {
+    const input = directUrl.trim();
+    if (!input) return;
+    if (isPlatformShareUrl(input)) {
+      setParseUrl(input);
+      setTab("parse");
+      await handleParse(input);
+      return;
+    }
     setResult({
-      url: directUrl.trim(),
+      url: input,
       cover: directCover.trim() || undefined,
       source: "url",
       platform: "url",
@@ -270,6 +278,9 @@ export default function VideoPanel({
                 placeholder="封面地址（可选）"
                 className="w-full rounded-lg border border-adm-border bg-adm-input px-3 py-2 text-sm text-adm-text placeholder:text-adm-text-tertiary focus:border-gray-400 focus:outline-none dark:focus:border-gray-500"
               />
+              <p className="text-[11px] text-adm-text-tertiary">
+                抖音等平台分享页会自动转到解析流程；此处也支持 .mp4、.webm、.m3u8 等视频直链。
+              </p>
               <button
                 type="button"
                 onClick={handleUseDirect}

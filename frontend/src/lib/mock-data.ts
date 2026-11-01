@@ -45,6 +45,15 @@ export interface LinkCard {
   description: string;
   image: string;
   siteName: string;
+  /** 解析平台图文的来源信息，保存在现有 linkCard JSON 中以兼容旧数据库。 */
+  sourceMeta?: {
+    author?: string;
+    avatar?: string;
+    like?: number;
+    time?: number;
+    platform?: string;
+    sourceUrl?: string;
+  };
 }
 
 export interface PostVideo {
@@ -438,6 +447,10 @@ export function getPostSourceLabel(post: Post): string | null {
     if (post.video.source === "upload") return "本地上传";
     if (post.video.source === "parse") return "视频平台";
     return "视频";
+  }
+  const imageSource = post.linkCard?.sourceMeta;
+  if (imageSource?.platform && VIDEO_PLATFORM_LABELS[imageSource.platform]) {
+    return VIDEO_PLATFORM_LABELS[imageSource.platform];
   }
   if (post.music) return null;
   return null;

@@ -62,11 +62,13 @@ interface SiteSettingAttributes {
   bannedWords: string | null;
   /** 进入网站是否自动播放歌单音乐 */
   musicAutoplay: boolean;
+  /** 抖音备用解析接口的 API Key，仅后端使用 */
+  douyinApiKey: string;
 }
 
 interface SiteSettingCreationAttributes extends Optional<
   SiteSettingAttributes,
-  "id" | "siteName" | "description" | "keywords" | "domain" | "beian" | "footerHtml" | "decorationImage" | "faviconUrl" | "ogImage" | "backgroundImages" | "darkModeEnabled" | "darkModeStartTime" | "darkModeEndTime" | "emailNotifyEnabled" | "notifyEmail" | "smtpHost" | "smtpPort" | "smtpSecure" | "smtpUser" | "smtpPass" | "smtpFrom" | "emailTemplate" | "amapJsKey" | "amapSecurityJsCode" | "amapKey" | "beianUrl" | "socialLinks" | "postCollapseLength" | "fontUrl" | "fontFamily" | "adOnArchives" | "commentAntiSpamEnabled" | "rssEnabled" | "rssIncludeMoments" | "doubanId" | "doubanCache" | "doubanSyncStatus" | "doubanSyncedAt" | "doubanLastError" | "doubanSyncLeaseId" | "doubanSyncLeaseExpiresAt" | "doubanLastAttemptAt" | "bannedWords" | "musicAutoplay"
+  "id" | "siteName" | "description" | "keywords" | "domain" | "beian" | "footerHtml" | "decorationImage" | "faviconUrl" | "ogImage" | "backgroundImages" | "darkModeEnabled" | "darkModeStartTime" | "darkModeEndTime" | "emailNotifyEnabled" | "notifyEmail" | "smtpHost" | "smtpPort" | "smtpSecure" | "smtpUser" | "smtpPass" | "smtpFrom" | "emailTemplate" | "amapJsKey" | "amapSecurityJsCode" | "amapKey" | "beianUrl" | "socialLinks" | "postCollapseLength" | "fontUrl" | "fontFamily" | "adOnArchives" | "commentAntiSpamEnabled" | "rssEnabled" | "rssIncludeMoments" | "doubanId" | "doubanCache" | "doubanSyncStatus" | "doubanSyncedAt" | "doubanLastError" | "doubanSyncLeaseId" | "doubanSyncLeaseExpiresAt" | "doubanLastAttemptAt" | "bannedWords" | "musicAutoplay" | "douyinApiKey"
 > {}
 
 class SiteSetting
@@ -118,6 +120,7 @@ class SiteSetting
   declare doubanLastAttemptAt: Date | null;
   declare bannedWords: string | null;
   declare musicAutoplay: boolean;
+  declare douyinApiKey: string;
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
 }
@@ -345,6 +348,12 @@ SiteSetting.init(
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: false,
+    },
+    douyinApiKey: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+      defaultValue: "",
+      field: "douyin_api_key",
     },
   },
   {

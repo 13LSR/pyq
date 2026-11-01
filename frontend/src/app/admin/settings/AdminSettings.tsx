@@ -29,6 +29,7 @@ import { SOCIAL_PLATFORMS, SocialIcon } from "@/components/SocialIcons";
 import MediaPicker from "@/components/MediaPicker";
 import EmailConfigSection from "./EmailConfigSection";
 import AmapConfigSection from "./AmapConfigSection";
+import DouyinApiConfigSection from "./DouyinApiConfigSection";
 
 interface SiteSettings {
   siteName: string;
@@ -812,6 +813,7 @@ export default function AdminSettings() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <EmailConfigSection />
         <AmapConfigSection />
+        <DouyinApiConfigSection />
       </div>
     </div>
   );

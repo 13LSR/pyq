@@ -235,6 +235,54 @@ router.get("/amap-config", authenticate, requireAdmin, async (_req: AuthRequest,
   });
 });
 
+function maskSecret(value: string): string {
+  const key = value.trim();
+  if (!key) return "";
+  if (key.length <= 8) return "********";
+  return `${key.slice(0, 4)}${"*".repeat(Math.min(16, key.length - 8))}${key.slice(-4)}`;
+}
+
+// GET /api/settings/video-config - parser config (admin only, key is always masked)
+router.get("/video-config", authenticate, requireAdmin, async (_req: AuthRequest, res: Response) => {
+  const setting = await ensureSetting();
+  res.setHeader("Cache-Control", "no-store");
+  res.json({
+    douyinApiKeyConfigured: Boolean(setting.douyinApiKey?.trim()),
+    douyinApiKeyMasked: maskSecret(setting.douyinApiKey || ""),
+  });
+});
+
+// PUT /api/settings/video-config - update parser config (admin only)
+router.put(
+  "/video-config",
+  authenticate,
+  requireAdmin,
+  [
+    body("douyinApiKey").optional().isString().isLength({ max: 255 }),
+    body("clearDouyinApiKey").optional().isBoolean(),
+  ],
+  async (req: AuthRequest, res: Response) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json({ errors: errors.array() });
+      return;
+    }
+
+    const setting = await ensureSetting();
+    const clear = req.body.clearDouyinApiKey === true;
+    const nextKey = clear ? "" : req.body.douyinApiKey;
+    if (nextKey !== undefined) {
+      await setting.update({ douyinApiKey: String(nextKey).trim() });
+    }
+
+    res.setHeader("Cache-Control", "no-store");
+    res.json({
+      douyinApiKeyConfigured: Boolean(setting.douyinApiKey?.trim()),
+      douyinApiKeyMasked: maskSecret(setting.douyinApiKey || ""),
+    });
+  }
+);
+
 // POST /api/settings/email-test - send a test email (admin only)
 router.post("/email-test", authenticate, requireAdmin, async (_req: AuthRequest, res: Response) => {
   try {

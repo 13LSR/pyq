@@ -38,6 +38,23 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "media.lcxj.dpdns.org",
       },
+      // 抖音图文解析返回的图片会使用 p3-sign/p9-sign 等动态子域名。
+      {
+        protocol: "https",
+        hostname: "douyinpic.com",
+      },
+      {
+        protocol: "https",
+        hostname: "**.douyinpic.com",
+      },
+      {
+        protocol: "https",
+        hostname: "**.byteimg.com",
+      },
+      {
+        protocol: "https",
+        hostname: "**.pstatp.com",
+      },
       {
         protocol: "http",
         hostname: "localhost",

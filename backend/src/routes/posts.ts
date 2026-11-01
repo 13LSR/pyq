@@ -727,6 +727,10 @@ router.post(
     }
     try {
       const result = await parseVideoFromUrl(video.sourceUrl);
+      if (result.type !== "video") {
+        res.status(422).json({ message: "该链接是图文内容，不能作为视频播放" });
+        return;
+      }
       // 更新 Post.video：保留 embedCode 等字段，覆盖解析结果
       const updatedVideo = { ...video, ...result };
       await post.update({ video: updatedVideo });

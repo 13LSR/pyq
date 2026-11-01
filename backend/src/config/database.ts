@@ -18,6 +18,10 @@ dotenv.config();
  * 或在数据库前加连接池代理如 RDS Proxy / ProxySQL），详见 VERCEL_DEPLOYMENT.md。
  */
 const isServerless = !!process.env.VERCEL;
+const dbHost = (process.env.DB_HOST || "127.0.0.1").trim();
+const isLocalDbHost = ["localhost", "127.0.0.1", "::1"].includes(dbHost.toLowerCase());
+// 本地 MySQL 通常没有可验证的 TLS 证书；云数据库仍按 DB_SSL 开关启用 TLS。
+const useDbSsl = process.env.DB_SSL === "true" && !isLocalDbHost;
 
 const defaultPoolMax = isServerless ? 2 : 10;
 const defaultPoolIdleMs = isServerless ? 5_000 : 10_000;
@@ -27,7 +31,7 @@ const sequelize = new Sequelize(
   process.env.DB_USER || "root",
   process.env.DB_PASSWORD || "",
   {
-    host: process.env.DB_HOST || "127.0.0.1",
+    host: dbHost,
     port: Number(process.env.DB_PORT || 3306),
     dialect: "mysql",
     // Sequelize 内部默认用 require('mysql2') 动态加载驱动。Vercel 的 Serverless
@@ -42,7 +46,7 @@ const sequelize = new Sequelize(
       // 大多数托管 MySQL（PlanetScale / TiDB Serverless / 阿里云 RDS 等）
       // 对外连接要求 TLS；本地/内网 MySQL 通常不需要，用环境变量按需开启。
       ssl:
-        process.env.DB_SSL === "true"
+        useDbSsl
           ? { rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== "false" }
           : undefined,
       connectTimeout: 10_000,

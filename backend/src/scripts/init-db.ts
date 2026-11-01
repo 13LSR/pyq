@@ -5,6 +5,7 @@ import { migrateContentPages } from "./migrate-content-pages";
 import { migrateFontFamily } from "./migrate-font-family";
 import { migrateDoubanCache } from "./migrate-douban-cache";
 import { migrateFooterHtml } from "./migrate-footer-html";
+import { migrateDouyinApiKey } from "./migrate-douyin-api-key";
 import { migrateDecorationImage } from "./migrate-decoration-image";
 import { migrateCatalogItemFields } from "./migrate-catalog-item-fields";
 import { migrateR2MusicFields } from "./migrate-r2-music-fields";
@@ -106,6 +107,7 @@ export async function initializeDatabase() {
   await migrateDoubanCache();
   await migrateFontFamily();
   await migrateFooterHtml();
+  await migrateDouyinApiKey();
   await migrateDecorationImage();
   await migrateCatalogItemFields();
   await migrateR2MusicFields();

@@ -42,11 +42,12 @@ import {
 import { cravatarUrl } from "@/lib/avatar";
 import { getGlobalAudio } from "@/lib/global-audio";
 import { useMusicPlayer } from "@/lib/music-player-store";
-import { Post, type PostLocation, type PostImage, type PostVideo, type PostDouban } from "@/lib/mock-data";
+import { Post, type LinkCard, type PostLocation, type PostImage, type PostVideo, type PostDouban } from "@/lib/mock-data";
 import { isLivePhoto, getImageSrc } from "@/lib/post-image";
 import { uploadAudio, uploadDirect, uploadImage, uploadVideo, toAbsoluteUrl, toHttps } from "@/lib/upload";
 import { PUBLIC_API_URL } from "@/lib/api-fetch";
 import { splitMotionPhoto } from "@/lib/motion-photo";
+import { isPlatformShareUrl } from "@/lib/video-url";
 import { useExitAnimation } from "@/lib/use-exit-animation";
 import RichTextEditor from "./RichTextEditor";
 import LazyImage from "./LazyImage";
@@ -64,6 +65,25 @@ const AUDIO_BASE = API_URL.replace("/api", "");
 function toAbsolute(url: string): string {
   if (!url || typeof url !== "string") return "";
   return url.startsWith("http") ? url : `${AUDIO_BASE}${url}`;
+}
+
+function escapeParsedText(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function parsedImageContent(title?: unknown, desc?: unknown): string {
+  const values = [title, desc]
+    .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+    .map((value) => value.trim());
+  const unique = values.filter((value, index) => values.indexOf(value) === index);
+  return unique
+    .map((value) => `<p>${escapeParsedText(value).replace(/\r?\n/g, "<br />")}</p>`)
+    .join("");
 }
 
 interface TopBarProps {
@@ -1045,13 +1065,7 @@ export function PublishModal({
     /** LRC 歌词文本（R2 上传音乐） */
     lrc?: string;
   } | null>(editPost?.music ?? null);
-  const [linkCard, setLinkCard] = useState<{
-    url: string;
-    title: string;
-    description: string;
-    image: string;
-    siteName: string;
-  } | null>(editPost?.linkCard ?? null);
+  const [linkCard, setLinkCard] = useState<LinkCard | null>(editPost?.linkCard ?? null);
   const [linkCardLoading, setLinkCardLoading] = useState(false);
   const [showMusicPanel, setShowMusicPanel] = useState(false);
   const [douban, setDouban] = useState<PostDouban | null>(editPost?.douban ?? null);
@@ -1383,7 +1397,57 @@ export function PublishModal({
       });
       if (res.ok) {
         const data = await res.json();
-        setVideo({ ...data, source: "parse" });
+        const isImagePost = data?.type === "image" ||
+          (Array.isArray(data?.images) && data.images.length > 0 && !data?.url);
+        if (isImagePost) {
+          const parsedImages = [
+            ...(Array.isArray(data.images) ? data.images : []),
+            ...(data.cover ? [data.cover] : []),
+          ].filter((value, index, all) =>
+            typeof value === "string" && /^https?:\/\//i.test(value) && all.indexOf(value) === index
+          ) as string[];
+          if (parsedImages.length === 0) {
+            setError("图文解析未返回可用图片");
+            return;
+          }
+          const nextContent = parsedImageContent(data.title, data.desc);
+          setContent((previous) => previous.trim()
+            ? `${previous}${nextContent ? `<p><br /></p>${nextContent}` : ""}`
+            : nextContent);
+          setImages((previous) => {
+            const merged = [...previous, ...parsedImages];
+            return merged.filter((item, index, all) => {
+              const value = typeof item === "string" ? item : item.src;
+              return all.findIndex((candidate) =>
+                (typeof candidate === "string" ? candidate : candidate.src) === value
+              ) === index;
+            }).slice(0, 9);
+          });
+          const sourceUrl = typeof data.sourceUrl === "string" && data.sourceUrl
+            ? data.sourceUrl
+            : url;
+          setLinkCard({
+            url: sourceUrl,
+            title: typeof data.title === "string" ? data.title : "",
+            description: typeof data.desc === "string" ? data.desc : "",
+            image: typeof data.cover === "string" && data.cover ? data.cover : parsedImages[0],
+            siteName: typeof data.platform === "string" ? data.platform : "",
+            sourceMeta: {
+              author: typeof data.author === "string" ? data.author : undefined,
+              avatar: typeof data.avatar === "string" ? data.avatar : undefined,
+              like: typeof data.like === "number" ? data.like : undefined,
+              time: typeof data.time === "number" ? data.time : undefined,
+              platform: typeof data.platform === "string" ? data.platform : undefined,
+              sourceUrl,
+            },
+          });
+          setVideo(null);
+          setUploadMode("normal");
+          setVideoTab("parse");
+          setParseUrl("");
+        } else {
+          setVideo({ ...data, source: "parse" });
+        }
       } else {
         const err = await res.json().catch(() => ({ message: "解析失败" }));
         setError(err.message || "解析失败");
@@ -1393,6 +1457,23 @@ export function PublishModal({
     } finally {
       setParsing(false);
     }
+  };
+
+  const handleUseDirectVideo = async () => {
+    const input = videoDirectUrl.trim();
+    if (!input) return;
+    if (isPlatformShareUrl(input)) {
+      setParseUrl(input);
+      setVideoTab("parse");
+      await handleParseVideo(input);
+      return;
+    }
+    setVideo({
+      url: input,
+      cover: videoDirectCover.trim() || undefined,
+      source: "url",
+      platform: "url",
+    });
   };
 
   // 短视频上传：复用 uploadOne(file, "video")
@@ -1857,12 +1938,12 @@ export function PublishModal({
                   placeholder="封面地址（可选）"
                   className="w-full rounded-md border border-black/5 bg-wechat-bubble px-3 py-1.5 text-sm text-wechat-text outline-none placeholder:text-wechat-time dark:border-white/5 dark:bg-white/5 dark:text-gray-200"
                 />
+                <p className="text-[11px] text-wechat-time">
+                  抖音等平台分享页会自动转到解析流程；此处也支持 .mp4、.webm、.m3u8 等视频直链。
+                </p>
                 <button
                   type="button"
-                  onClick={() => {
-                    if (!videoDirectUrl.trim()) return;
-                    setVideo({ url: videoDirectUrl.trim(), cover: videoDirectCover.trim() || undefined, source: "url", platform: "url" });
-                  }}
+                  onClick={handleUseDirectVideo}
                   disabled={!videoDirectUrl.trim()}
                   className="rounded-md px-3 py-1.5 text-xs font-medium transition-colors disabled:bg-wechat-bubble disabled:text-wechat-time enabled:bg-green-500 enabled:text-white enabled:hover:bg-green-600 dark:disabled:bg-white/5 dark:disabled:text-gray-500"
                 >

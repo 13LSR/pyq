@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef, type CSSProperties } from "react";
 import { Music, Pause, Pin, FileText } from "lucide-react";
-import { Post, formatRelativeTime, getPostSourceLabel } from "@/lib/mock-data";
+import { Post, type LinkCard, formatRelativeTime, getPostSourceLabel } from "@/lib/mock-data";
 import { resolveAvatar } from "@/lib/avatar";
 import { normalizeImages } from "@/lib/post-image";
 import { toAbsoluteUrl, toHttps } from "@/lib/upload";
@@ -24,6 +24,54 @@ import LazyImage from "./LazyImage";
 import DoubanEmbedCard from "./article/DoubanEmbedCard";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+
+function formatSourceLike(n?: number): string | null {
+  if (typeof n !== "number" || n <= 0) return null;
+  if (n >= 10000) return `${(n / 10000).toFixed(1)}万`;
+  return String(n);
+}
+
+function ImageSourceInfoBar({ linkCard }: { linkCard: LinkCard }) {
+  const source = linkCard.sourceMeta;
+  if (!source || (!linkCard.title && !source.author && !source.platform)) return null;
+  const likeText = formatSourceLike(source.like);
+  const sourceUrl = source.sourceUrl || linkCard.url;
+  const href = sourceUrl && /^https?:\/\//i.test(sourceUrl) ? sourceUrl : null;
+  const content = (
+    <>
+      {source.avatar && (
+        <img
+          src={toAbsoluteUrl(source.avatar)}
+          alt=""
+          className="h-4 w-4 shrink-0 rounded-full object-cover"
+        />
+      )}
+      {source.platform && (
+        <span className="shrink-0 rounded bg-wechat-bubble px-1 py-0.5 text-[10px] dark:bg-white/10">
+          {source.platform === "douyin" ? "抖音" : source.platform}
+        </span>
+      )}
+      {linkCard.title && <span className="truncate text-wechat-text">{linkCard.title}</span>}
+      {source.author && <span className="shrink-0">· {source.author}</span>}
+      {likeText && <span className="shrink-0 text-[11px]">♡ {likeText}</span>}
+    </>
+  );
+  if (!href) {
+    return <div className="mt-1.5 flex items-center gap-1.5 text-[12px] text-wechat-time">{content}</div>;
+  }
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      title="点击查看原图文"
+      onClick={(e) => e.stopPropagation()}
+      className="mt-1.5 flex items-center gap-1.5 text-[12px] text-wechat-time transition-colors hover:text-wechat-text"
+    >
+      {content}
+    </a>
+  );
+}
 
 // 桌面端滚动容器是 #scroll-root（固定定位 div），手机端是 window
 function smoothScrollBy(delta: number) {
@@ -397,6 +445,9 @@ export default function PostCard({ post, index, onDelete }: PostCardProps) {
         ) : (
           <ImageGrid images={normalizeImages(post.images)} />
         ))}
+        {!isArticle && !post.video && post.linkCard?.sourceMeta && (
+          <ImageSourceInfoBar linkCard={post.linkCard} />
+        )}
 
         {/* 文章类型：链接卡片展示（左封面 + 右标题/摘要） */}
         {isArticle && (
@@ -434,7 +485,7 @@ export default function PostCard({ post, index, onDelete }: PostCardProps) {
         )}
 
         {/* Link card — 微信朋友圈链接卡片样式（文章类型的链接卡片已内联到正文，仅在详情页显示） */}
-        {!isArticle && post.linkCard && (
+        {!isArticle && post.linkCard && !post.linkCard.sourceMeta && (
           <a
             href={post.linkCard.url}
             target="_blank"
