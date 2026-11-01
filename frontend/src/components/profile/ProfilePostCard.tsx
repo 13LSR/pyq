@@ -10,6 +10,7 @@ import { toAbsoluteUrl, toHttps } from "@/lib/upload";
 import { renderContent } from "@/lib/sanitize";
 import { useMusicPlayer } from "@/lib/music-player-store";
 import { useSiteSettings } from "@/lib/site-settings-store";
+import LazyImage from "@/components/LazyImage";
 
 type TileKind = "image" | "video" | "music" | "link" | "text" | "article";
 
@@ -426,13 +427,11 @@ function ProfileArticleCard({ post, cover, goDetail }: { post: Post; cover: stri
         {/* 左侧方形封面 */}
         <div className="relative h-[72px] w-[72px] shrink-0 overflow-hidden bg-black/5 dark:bg-white/5 md:h-[80px] md:w-[80px]">
           {cover ? (
-            <Image
+            <LazyImage
               src={cover}
+              cacheKey={post.id}
               alt={post.title || "文章封面"}
-              fill
-              className="h-full w-full object-cover"
-              sizes="80px"
-              unoptimized
+              className="absolute inset-0 h-full w-full object-cover"
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center">

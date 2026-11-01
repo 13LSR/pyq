@@ -37,7 +37,6 @@ export default function AdminLayoutClient({
   useEffect(() => {
     const token = localStorage.getItem("admin_token");
     if (pathname === "/admin/login") {
-      if (token) router.replace("/admin");
       setLoading(false);
       return;
     }

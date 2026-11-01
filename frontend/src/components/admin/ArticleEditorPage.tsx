@@ -6,7 +6,7 @@ import { ArrowLeft, Loader2, X, Image as ImageIcon, MapPin, Heart, MessageSquare
 import ArticleEditor, { buildMusicEmbedHtml, buildLinkCardHtml, buildVideoEmbedHtml } from "@/components/ArticleEditor";
 import MediaPicker from "@/components/MediaPicker";
 import { apiFetch, getToken } from "@/lib/api-fetch";
-import { uploadImage, toAbsoluteUrl } from "@/lib/upload";
+import { RANDOM_ARTICLE_COVER_URL, uploadImage, withRandomArticleCoverCacheBust } from "@/lib/upload";
 import { wgs84ToGcj02 } from "@/lib/coord-transform";
 import type { PostMusic, PostVideo, LinkCard } from "@/lib/mock-data";
 
@@ -480,7 +480,7 @@ export default function ArticleEditorPage({ articleId }: ArticleEditorPageProps)
                 <div className="group relative">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={toAbsoluteUrl(cover)}
+                    src={withRandomArticleCoverCacheBust(cover)}
                     alt="封面"
                     className="aspect-video w-full rounded-lg object-cover"
                   />
@@ -523,6 +523,25 @@ export default function ArticleEditorPage({ articleId }: ArticleEditorPageProps)
                   媒体库
                 </button>
               </div>
+              <div className="mt-2 flex gap-2">
+                <input
+                  type="url"
+                  value={cover}
+                  onChange={(event) => setCover(event.target.value)}
+                  placeholder="粘贴图片直链，支持随机图床"
+                  className="min-w-0 flex-1 rounded-lg border border-adm-border bg-adm-input px-3 py-2 text-xs text-adm-text placeholder:text-adm-text-tertiary focus:border-adm-primary focus:outline-none focus:ring-1 focus:ring-adm-primary"
+                />
+                <button
+                  type="button"
+                  onClick={() => setCover(RANDOM_ARTICLE_COVER_URL)}
+                  className="shrink-0 rounded-lg border border-adm-border bg-adm-card px-3 py-2 text-xs font-medium text-adm-text-secondary transition-colors hover:bg-adm-card-hover hover:text-adm-text"
+                >
+                  随机图床
+                </button>
+              </div>
+              <p className="mt-1.5 text-[11px] text-adm-text-tertiary">
+                随机图床每次刷新文章封面时会重新请求一张图片；本地上传和媒体库仍保存到 R2。
+              </p>
               <input
                 ref={coverInputRef}
                 type="file"

@@ -156,12 +156,6 @@ export default function PostList({ initialPosts, initialHasMore, initialPage }: 
     return () => observer.disconnect();
   }, [loadMore]);
 
-  if (posts.length === 0) {
-    return (
-      <div className="py-12 text-center text-sm text-wechat-time">暂无动态</div>
-    );
-  }
-
   // 构建展示列表：在第 5 个位置插入一条随机广告（广告作为第 5 个展示项）
   // 后续不再插入广告，避免广告刷屏
   // 使用 useMemo 稳定随机选择，避免每次重渲染都换广告
@@ -178,6 +172,12 @@ export default function PostList({ initialPosts, initialHasMore, initialPage }: 
     });
     return list;
   }, [posts, ads]);
+
+  if (posts.length === 0) {
+    return (
+      <div className="py-12 text-center text-sm text-wechat-time">暂无动态</div>
+    );
+  }
 
   return (
     <>

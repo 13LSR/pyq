@@ -5,7 +5,7 @@ import Link from "next/link";
 import { BookText, Tag } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useSiteSettings } from "@/lib/site-settings-store";
-import { toAbsoluteUrl } from "@/lib/upload";
+import { toAbsoluteUrl, withRandomArticleCoverCacheBust } from "@/lib/upload";
 import DoubanSidebar from "./DoubanSidebar";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
@@ -164,7 +164,10 @@ export default function ArticleListSidebar() {
                           <div className="relative h-12 w-16 shrink-0 overflow-hidden rounded-md bg-wechat-bubble dark:bg-white/5">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
-                              src={toAbsoluteUrl(article.cover || defaultCover)}
+                              src={withRandomArticleCoverCacheBust(
+                                toAbsoluteUrl(article.cover || defaultCover),
+                                article.id
+                              )}
                               alt=""
                               className="h-full w-full object-cover"
                               loading="lazy"

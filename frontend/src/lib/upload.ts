@@ -5,6 +5,11 @@ const BASE_URL = API_URL.replace(/\/api$/, "");
 
 export type DirectUploadKind = "image" | "video" | "audio" | "lyric" | "file";
 export type MediaKind = DirectUploadKind;
+/** Direct image endpoint used for article cover previews. It returns one image per request. */
+export const RANDOM_ARTICLE_COVER_URL =
+  process.env.NEXT_PUBLIC_RANDOM_ARTICLE_COVER_URL || "https://eo-vpic.byz.qzz.io/";
+const RANDOM_ARTICLE_COVER_HOST = "eo-vpic.byz.qzz.io";
+const randomArticleCoverCache = new Map<string, string>();
 export const AUDIO_FILE_ACCEPT = ".mp3,.wav,.ogg,.opus,.aac,.m4a,.flac,audio/mpeg,audio/wav,audio/ogg,audio/opus,audio/aac,audio/mp4,audio/flac";
 export const LYRIC_FILE_ACCEPT = ".lrc,text/plain";
 export type DirectUploadPhase = "presign" | "put" | "confirm" | "network";
@@ -50,6 +55,37 @@ export function toHttps(url: string): string {
   if (!url || typeof url !== "string") return url;
   if (url.startsWith("http://")) return "https://" + url.slice(7);
   return url;
+}
+
+export function isRandomArticleCoverUrl(url: string): boolean {
+  try {
+    return new URL(toAbsoluteUrl(url)).hostname === RANDOM_ARTICLE_COVER_HOST;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Resolve the random image endpoint once per article during this page lifetime.
+ * A full browser refresh creates a new module instance and requests a new image.
+ */
+export function withRandomArticleCoverCacheBust(url: string, cacheKey = ""): string {
+  const absolute = toHttps(toAbsoluteUrl(url));
+  if (!absolute || !isRandomArticleCoverUrl(absolute)) return absolute;
+  const parsed = new URL(absolute);
+  if (parsed.searchParams.has("__article_cover")) return absolute;
+
+  const key = `${absolute}\u0000${cacheKey}`;
+  const cached = randomArticleCoverCache.get(key);
+  if (cached) return cached;
+
+  parsed.searchParams.set(
+    "__article_cover",
+    `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+  );
+  const resolved = parsed.toString();
+  randomArticleCoverCache.set(key, resolved);
+  return resolved;
 }
 
 function normalizedMimeType(file: File): string {

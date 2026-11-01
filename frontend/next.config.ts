@@ -35,6 +35,10 @@ const nextConfig: NextConfig = {
         hostname: "kanle.net",
       },
       {
+        protocol: "https",
+        hostname: "media.lcxj.dpdns.org",
+      },
+      {
         protocol: "http",
         hostname: "localhost",
         port: "4000",

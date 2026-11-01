@@ -112,7 +112,7 @@ export default function CoverHeader({ user, avatarHref, coverUrls }: CoverHeader
               alt="朋友圈封面"
               fill
               priority={idx === 0}
-              onLoadingComplete={() => handleImageLoad(idx)}
+              onLoad={() => handleImageLoad(idx)}
               className={`object-cover transition-opacity duration-1000 ${
                 idx === visibleIdx ? "opacity-100" : "opacity-0"
               }`}

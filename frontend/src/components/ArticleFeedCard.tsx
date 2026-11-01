@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { Post, formatRelativeTime } from "@/lib/mock-data";
 import { toAbsoluteUrl } from "@/lib/upload";
+import LazyImage from "@/components/LazyImage";
 import { useSiteSettings } from "@/lib/site-settings-store";
 
 interface ArticleFeedCardProps {
@@ -48,9 +49,9 @@ export default function ArticleFeedCard({ post }: ArticleFeedCardProps) {
         </span>
         {coverUrl && (
           <div className="h-14 w-20 shrink-0 overflow-hidden rounded">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <LazyImage
               src={coverUrl}
+              cacheKey={post.id}
               alt={post.title || "封面"}
               className="h-full w-full object-cover"
             />

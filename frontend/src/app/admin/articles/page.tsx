@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { PenLine, Trash2, Loader2, FileText, ExternalLink, Pin, PinOff } from "lucide-react";
 import { apiFetch } from "@/lib/api-fetch";
-import { toAbsoluteUrl } from "@/lib/upload";
+import { toAbsoluteUrl, withRandomArticleCoverCacheBust } from "@/lib/upload";
 import { formatArticleTime } from "@/lib/mock-data";
 import { useSiteSettings } from "@/lib/site-settings-store";
 
@@ -151,7 +151,7 @@ export default function AdminArticlesPage() {
                   {article.cover || defaultCover ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={toAbsoluteUrl(article.cover || defaultCover)}
+                      src={withRandomArticleCoverCacheBust(toAbsoluteUrl(article.cover || defaultCover))}
                       alt={article.title}
                       className="h-full w-full object-cover"
                       loading="lazy"

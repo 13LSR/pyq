@@ -409,6 +409,7 @@ export default function PostCard({ post, index, onDelete }: PostCardProps) {
               {(post.cover || defaultCover) ? (
                 <LazyImage
                   src={toHttps(toAbsoluteUrl(post.cover || defaultCover))}
+                  cacheKey={post.id}
                   alt={post.title || "文章封面"}
                   className="h-full w-full object-cover"
                 />
