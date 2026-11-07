@@ -12,6 +12,8 @@ import ArticleCommentSection from "@/components/article/ArticleCommentSection";
 import ArticleEmbedContent from "@/components/article/ArticleEmbedContent";
 import MusicEmbedCard from "@/components/article/MusicEmbedCard";
 import VideoPlayer from "@/components/VideoPlayer";
+import { ArticleVisitStats } from "@/components/UmamiStats";
+import { umamiConfig } from "@/lib/umami-config";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
 
@@ -58,10 +60,10 @@ export default function ArticleReader({ post }: ArticleReaderProps) {
 
   useEffect(() => {
     const email = (typeof window !== "undefined" && localStorage.getItem("visitor_email")) || "";
-    // 客户端 fetch 带 view=1 递增阅读量（SSR 不带此参数不递增）
+    // Umami 启用时仅刷新互动状态，不再递增数据库旧阅读数。
     const params = new URLSearchParams();
     if (email) params.set("email", email);
-    params.set("view", "1");
+    if (!umamiConfig.enabled) params.set("view", "1");
     const url = `${API_URL}/posts/${post.id}?${params.toString()}`;
     fetch(url, {
       cache: "no-store",
@@ -226,7 +228,9 @@ export default function ArticleReader({ post }: ArticleReaderProps) {
 
       {/* 阅读量 + 点赞数 — 左右分布 */}
       <div className="mt-4 flex items-center justify-between text-[12px] text-wechat-time md:text-[13px]">
-        <span>阅读 {viewCount}</span>
+        {umamiConfig.enabled
+          ? <ArticleVisitStats id={post.id} shortId={post.shortId} />
+          : <span>阅读 {viewCount}</span>}
         <span>点赞 {likes.length}</span>
       </div>
 

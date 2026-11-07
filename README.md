@@ -365,6 +365,40 @@ https://api.example.com/api/posts
 
 因此不要将 `NEXT_PUBLIC_API_URL` 写成完整后端地址。保持 `/api` 可减少浏览器跨域 Cookie 问题；域名变化时也不需要重写客户端 API 路径。
 
+### Umami 访问统计
+
+本站通过 `frontend/src/lib/umami-config.ts` 配置自建 Umami，当前默认实例为
+`https://umami.331106.xyz`，采集域名为 `pyq.331106.xyz`。不需要修改博客数据库、
+后端环境变量或 R2 设置，也不需要新增依赖；只部署前端即可接入。
+
+- 根布局只加载一次 Tracker。关闭脚本自动采集，由 Next.js 路由变化上报，包含前进、后退；查询参数、锚点变化不重复计数。
+- 本地、未在白名单内的预览域名和 `/admin`、`/admin/*` 管理页面不发送访问事件。
+- 电脑和手机页脚展示全站历史浏览量、访客数；文章阅读量汇总该文章短 ID、UUID 两种链接的浏览量。
+- 文章阅读量启用后不再通过 `view=1` 递增 MySQL/TiDB 计数；原字段和历史数字仍保留，不与 Umami 数据相加。Umami 不会自动导入原有阅读数。
+- 数字为 0 是有效结果。加载失败显示“统计暂不可用”，不会将错误显示为零。分享令牌缓存 5 分钟，统计缓存 30 秒；完成页面上报后重新查询，不轮询。
+
+修改接入目标可编辑上述配置文件，或在 Vercel **前端项目**设置以下可选覆盖项后重新部署：
+
+| 环境变量 | 说明 |
+| --- | --- |
+| `NEXT_PUBLIC_UMAMI_ENABLED` | 设为 `false` 关闭采集与公开数字，文章恢复原数据库计数 |
+| `NEXT_PUBLIC_UMAMI_URL` | 自建 Umami 地址，不含 `/script.js` 或 `/api/send` |
+| `NEXT_PUBLIC_UMAMI_WEBSITE_ID` | 本站 Website ID |
+| `NEXT_PUBLIC_UMAMI_SHARE_ID` | 同一网站启用分享后的 Share ID，即分享链接 `/share/` 后的值 |
+| `NEXT_PUBLIC_UMAMI_DOMAINS` | 允许采集的域名，逗号分隔，不带协议、路径或端口 |
+
+Website ID 与 Share ID 必须属于同一网站；切换网站时同时修改两者。它们是公开标识，
+浏览器通过分享接口取得临时令牌读取汇总数据，不需要管理员令牌或 Umami 数据库凭据。
+若新增优选域名，把它加入 `NEXT_PUBLIC_UMAMI_DOMAINS` 后重新构建前端。
+
+部署后在正式域名打开首页、文章页并前进/后退：检查 `/script.js` 返回 200、
+每次页面切换只有一个 `/api/send`，并在 Umami 实时视图确认访问。页脚和阅读量通过
+`/api/share/{shareId}` 与 `/api/websites/{websiteId}/stats` 读取；统计请求使用
+`credentials: omit`，Umami 服务需允许跨域 GET 和 `x-umami-share-token` 请求头。
+若自行添加 CSP，`script-src`、`connect-src` 均需允许 Umami 域名。
+
+可在 `frontend` 目录运行 `node --test tests/umami.test.mjs` 验证缓存、失效重试和文章统计。
+
 ## 6. 绑定域名、Preview 与重新部署
 
 建议将稳定 Production 域名绑定到 Vercel：
